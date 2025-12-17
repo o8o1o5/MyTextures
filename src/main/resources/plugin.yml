@@ -1,0 +1,10 @@
+name: MyTextures
+version: '1.0-SNAPSHOT'
+main: dev.o8o1o5.myTextures.MyTextures
+api-version: '1.21'
+authors: [ o8o1o5 ]
+description: Custom Item Plugin
+commands:
+  mt:
+    description: MyTextures main command
+    usage: /mt register <id> <item>
