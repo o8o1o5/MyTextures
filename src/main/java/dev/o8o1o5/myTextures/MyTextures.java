@@ -1,7 +1,8 @@
 package dev.o8o1o5.myTextures;
 
 import dev.o8o1o5.myTextures.command.TextureCommand;
-import dev.o8o1o5.myTextures.manager.ItemManager;
+import dev.o8o1o5.myTextures.manager.FileManager;
+import dev.o8o1o5.myTextures.manager.ItemRegistry;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -9,7 +10,8 @@ import java.io.File;
 public final class MyTextures extends JavaPlugin {
 
     private CustomItem customItem;
-    private ItemManager itemManager;
+    private ItemRegistry itemRegistry;
+    private FileManager fileManager;
 
     @Override
     public void onEnable() {
@@ -17,15 +19,13 @@ public final class MyTextures extends JavaPlugin {
         getLogger().info("MyTextures 플러그인이 활성화 되었습니다!");
         createPluginFolders();
 
-        this.itemManager = new ItemManager(this);
-        itemManager.createPackMeta();
+        this.itemRegistry = new ItemRegistry(this);
+        this.fileManager = new FileManager(this);
+
+        fileManager.setupFolders();
+        fileManager.createPackMeta();
 
         getCommand("mt").setExecutor(new TextureCommand(this));
-
-        // 테스트용
-        if (itemManager.registerItem("test_item")) {
-            getLogger().info("테스트 아이템 등록 성공!");
-        }
     }
 
     @Override
@@ -55,7 +55,11 @@ public final class MyTextures extends JavaPlugin {
         }
     }
 
-    public ItemManager getItemManager() {
-        return itemManager;
+    public ItemRegistry getItemRegistry() {
+        return itemRegistry;
     }
+    public FileManager getFileManager() {
+        return fileManager;
+    }
+
 }

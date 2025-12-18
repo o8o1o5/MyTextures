@@ -1,6 +1,9 @@
 package dev.o8o1o5.myTextures.manager;
 
+import dev.o8o1o5.myTextures.CustomItem;
 import dev.o8o1o5.myTextures.MyTextures;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -12,105 +15,54 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class ItemManager {
-
+public class ItemRegistry {
     private final MyTextures plugin;
+    private final Map<String, CustomItem> itemList = new HashMap<>();
 
-    public  ItemManager(MyTextures plugin) {
+    public ItemRegistry(MyTextures plugin) {
         this.plugin = plugin;
     }
 
-    /**
-     * 1. 이미지를 복사합니다.
-     * 2. 아이템 정의 JSON 을 생성합니다.
-     * 3. 아이템 모델 JSON 을 생성합니다.
-     */
-    public boolean registerItem(String id) {
-        File sourceImage = new File(plugin.getDataFolder(), "images/" + id + ".png");
-
-        if (!sourceImage.exists()) {
-            plugin.getLogger().warning(id + ".png 파일이 images 폴더에 존재하지 않습니다!");
-            return false;
-        }
-
-        try {
-            File destImage = new File(plugin.getDataFolder(), "export/assets/mytextures/textures/item/" + id + ".png");
-            Files.copy(sourceImage.toPath(), destImage.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-            createItemDefinition(id);
-
-            createItemModel(id);
-
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+    public void registerItemData(String id, Material material) {
+        itemList.put(id, new CustomItem(id, material));
     }
 
-    private void createItemDefinition(String id) throws IOException {
-        File file = new File(plugin.getDataFolder(), "export/assets/mytextures/items/" + id + ".json");
-        String content = "{\n" +
-                "   \"model\": {\n" +
-                "       \"type\": \"minecraft:model\",\n" +
-                "       \"model\": \"mytextures:item/custom/" + id + "\"\n" +
-                "   }\n" +
-                "}";
-        writeFile(file, content);
+    public boolean updateDisplayName(String id, String name) {
+        CustomItem item = itemList.get(id);
+        if (item == null) return false;
+        item.setDisplayName(name);
+        return true;
     }
 
-    private void createItemModel(String id) throws IOException {
-        File file = new File(plugin.getDataFolder(), "export/assets/mytextures/models/item/custom/" + id +".json");
-        String content = "{\n" +
-                "   \"parent\": \"minecraft:item/generated\",\n" +
-                "   \"textures\": {\n" +
-                "       \"layer0\": \"mytextures:item/" + id + "\"\n" +
-                "   }\n" +
-                "}";
-        writeFile(file, content);
-    }
+    public ItemStack createItem(String id) {
+        CustomItem data = itemList.get(id);
+        if (data == null) return null;
 
-    public void createPackMeta() {
-        File file = new File(plugin.getDataFolder(), "export/pack.mcmeta");
-
-        String content = "{\n" +
-                "   \"pack\": {\n" +
-                "       \"description\": \"MyTextures Auto Generated Pack\",\n" +
-                "       \"min_format\": 69,\n" +
-                "       \"max_foramt\": 69\n" +
-                "   }\n" +
-                "}";
-
-        try (FileWriter writer = new FileWriter(file)) {
-            writer.write(content);
-            plugin.getLogger().info("최신 규격의 pack.mcmeta 를 성공적으로 생성했습니다.");
-        } catch (IOException e) {
-            plugin.getLogger().severe("pack.mcmeta 생성 중 오류 발생: " + e.getMessage());
-        }
-    }
-
-    private void writeFile(File file, String content) throws IOException {
-        try (FileWriter writer = new FileWriter(file)) {
-            writer.write(content);
-        }
-    }
-
-    public ItemStack createCustomItem(String id, Material material) {
-        ItemStack item = new ItemStack(material);
+        ItemStack item = new ItemStack(data.getBaseItem());
         ItemMeta meta = item.getItemMeta();
-
         if (meta != null) {
-            NamespacedKey modelKey = new NamespacedKey("mytextures", id);
-            meta.setItemModel(modelKey);
+            meta.setItemModel(new NamespacedKey("mytextures", id));
 
-            NamespacedKey pdcKey = new NamespacedKey(plugin, "item_id");
-            meta.getPersistentDataContainer().set(pdcKey, PersistentDataType.STRING, id);
+            Component nameComponent = Component.text()
+                    .content(data.getDisplayName())
+                    .build();
 
-            meta.setDisplayName(id);
+            meta.displayName(nameComponent);
 
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    public Map<String, CustomItem> getItemList() {
+        return itemList;
+    }
+
+    public boolean exists(String id) {
+        return itemList.containsKey(id);
     }
 }
