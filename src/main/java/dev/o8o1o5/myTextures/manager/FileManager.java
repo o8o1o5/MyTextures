@@ -67,6 +67,16 @@ public class FileManager {
         }
     }
 
+    public void deleteResourceFiles(String id) {
+        File itemJson = new File(plugin.getDataFolder(), "export/assets/mytextures/items/" + id + ".json");
+        File modelJson = new File(plugin.getDataFolder(), "export/assets/mytextures/models/item/custom/" + id + ".json");
+        File texture = new File(plugin.getDataFolder(), "export/assets/mytextures/textures/item/" + id + ".png");
+
+        if (itemJson.exists()) itemJson.delete();
+        if (modelJson.exists()) modelJson.delete();
+        if (texture.exists()) texture.delete();
+    }
+
     private void writeFile(File file, String content) {
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(content);

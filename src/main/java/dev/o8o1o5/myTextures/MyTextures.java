@@ -16,16 +16,23 @@ public final class MyTextures extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
-        getLogger().info("MyTextures 플러그인이 활성화 되었습니다!");
-        createPluginFolders();
-
-        this.itemRegistry = new ItemRegistry(this);
         this.fileManager = new FileManager(this);
+        this.itemRegistry = new ItemRegistry(this);
+
+        saveDefaultConfig();
+
+        itemRegistry.loadItems();
 
         fileManager.setupFolders();
         fileManager.createPackMeta();
 
-        getCommand("mt").setExecutor(new TextureCommand(this));
+        TextureCommand cmd = new TextureCommand(this);
+        if (getCommand("mt") != null) {
+            getCommand("mt").setExecutor(cmd);
+            getCommand("mt").setTabCompleter(cmd);
+        }
+
+        getLogger().info("MyTextures 플러그인이 활성화 되었습니다!");
     }
 
     @Override

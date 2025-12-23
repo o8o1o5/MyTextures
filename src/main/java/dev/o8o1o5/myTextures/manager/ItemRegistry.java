@@ -6,6 +6,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -25,6 +27,41 @@ public class ItemRegistry {
 
     public ItemRegistry(MyTextures plugin) {
         this.plugin = plugin;
+    }
+
+    public void saveItems() {
+        FileConfiguration config = plugin.getConfig();
+        config.set("items", null);
+
+        for (Map.Entry<String, CustomItem> entry : itemList.entrySet()) {
+            String id = entry.getKey();
+            CustomItem item = entry.getValue();
+
+            config.set("items." + id + ".material", item.getBaseItem().name());
+            config.set("items." + id + ".display_name", item.getDisplayName());
+        }
+        plugin.saveConfig();
+        plugin.getLogger().info("모든 아이템 데이터가 저장되었습니다.");
+    }
+
+    public void loadItems() {
+        FileConfiguration config = plugin.getConfig();
+        ConfigurationSection section = config.getConfigurationSection("items");
+
+        if (section == null) return;
+
+        itemList.clear();
+        for (String id : section.getKeys(false)) {
+            String matName = config.getString("items." + id + ".material");
+            String displayName = config.getString("items." + id + ".display_name");
+            Material material = Material.getMaterial(matName != null ? matName : "PAPER");
+
+            CustomItem item = new CustomItem(id, material);
+            if (displayName != null) item.setDisplayName(displayName);
+
+            itemList.put(id, item);
+        }
+        plugin.getLogger().info(itemList.size() + "개의 아이템 데이터를 불러왔습니다.");
     }
 
     public void registerItemData(String id, Material material) {
@@ -49,6 +86,7 @@ public class ItemRegistry {
 
             Component nameComponent = Component.text()
                     .content(data.getDisplayName())
+                    .decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE)
                     .build();
 
             meta.displayName(nameComponent);
@@ -56,6 +94,17 @@ public class ItemRegistry {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    public boolean removeItem(String id) {
+        if (!itemList.containsKey(id)) return false;
+
+        itemList.remove(id);
+        saveItems();
+
+        plugin.getFileManager().deleteResourceFiles(id);
+
+        return true;
     }
 
     public Map<String, CustomItem> getItemList() {
