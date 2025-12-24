@@ -107,6 +107,22 @@ public class ItemRegistry {
         return true;
     }
 
+    public void reload() {
+        plugin.reloadConfig();
+
+        itemList.clear();
+        loadItems();
+
+        int count = 0;
+        for (String id : itemList.keySet()) {
+            if (plugin.getFileManager().generateResourceFiles(id)) {
+                count ++;
+            }
+        }
+
+        plugin.getLogger().info("플러그인 설정 및 " + count + "개의 리소스 파일이 재로드되었습니다.");
+    }
+
     public Map<String, CustomItem> getItemList() {
         return itemList;
     }

@@ -3,6 +3,7 @@ package dev.o8o1o5.myTextures;
 import dev.o8o1o5.myTextures.command.TextureCommand;
 import dev.o8o1o5.myTextures.manager.FileManager;
 import dev.o8o1o5.myTextures.manager.ItemRegistry;
+import dev.o8o1o5.myTextures.manager.WebServerManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -12,12 +13,14 @@ public final class MyTextures extends JavaPlugin {
     private CustomItem customItem;
     private ItemRegistry itemRegistry;
     private FileManager fileManager;
+    private WebServerManager webServerManager;
 
     @Override
     public void onEnable() {
         // Plugin startup logic
         this.fileManager = new FileManager(this);
         this.itemRegistry = new ItemRegistry(this);
+        this.webServerManager = new WebServerManager(this);
 
         saveDefaultConfig();
 
@@ -25,6 +28,9 @@ public final class MyTextures extends JavaPlugin {
 
         fileManager.setupFolders();
         fileManager.createPackMeta();
+
+        int port = getConfig().getInt("web-server.port", 8080);
+        webServerManager.startserver(port);
 
         TextureCommand cmd = new TextureCommand(this);
         if (getCommand("mt") != null) {
@@ -67,6 +73,9 @@ public final class MyTextures extends JavaPlugin {
     }
     public FileManager getFileManager() {
         return fileManager;
+    }
+    public WebServerManager getWebServerManager() {
+        return webServerManager;
     }
 
 }

@@ -1,0 +1,5 @@
+web-server:
+  port: 8080
+  address: "111.111.11.11"
+
+items: {}
