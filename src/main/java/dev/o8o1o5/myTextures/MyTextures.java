@@ -1,5 +1,6 @@
 package dev.o8o1o5.myTextures;
 
+import dev.o8o1o5.myTextures.api.MyTexturesAPI;
 import dev.o8o1o5.myTextures.command.TextureCommand;
 import dev.o8o1o5.myTextures.manager.FileManager;
 import dev.o8o1o5.myTextures.manager.ItemRegistry;
@@ -21,6 +22,8 @@ public final class MyTextures extends JavaPlugin {
         this.fileManager = new FileManager(this);
         this.itemRegistry = new ItemRegistry(this);
         this.webServerManager = new WebServerManager(this);
+
+        MyTexturesAPI.init(this);
 
         saveDefaultConfig();
 
