@@ -1,9 +1,9 @@
 package dev.o8o1o5.myTextures;
 
 import dev.o8o1o5.myTextures.api.MyTexturesAPI;
-import dev.o8o1o5.myTextures.command.TextureCommand;
+import dev.o8o1o5.myTextures.command.TexturesCommand;
 import dev.o8o1o5.myTextures.manager.FileManager;
-import dev.o8o1o5.myTextures.manager.ItemRegistry;
+import dev.o8o1o5.myTextures.core.ItemRegistry;
 import dev.o8o1o5.myTextures.manager.WebServerManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -11,7 +11,6 @@ import java.io.File;
 
 public final class MyTextures extends JavaPlugin {
 
-    private CustomItem customItem;
     private ItemRegistry itemRegistry;
     private FileManager fileManager;
     private WebServerManager webServerManager;
@@ -35,7 +34,7 @@ public final class MyTextures extends JavaPlugin {
         int port = getConfig().getInt("web-server.port", 8080);
         webServerManager.startserver(port);
 
-        TextureCommand cmd = new TextureCommand(this);
+        TexturesCommand cmd = new TexturesCommand(this);
         if (getCommand("mt") != null) {
             getCommand("mt").setExecutor(cmd);
             getCommand("mt").setTabCompleter(cmd);

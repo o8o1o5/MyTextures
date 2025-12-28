@@ -19,7 +19,7 @@ public class MyTexturesAPI {
     }
 
     // 출처를 기록하며 아이템을 생성하기 때문에, sourceApp 을 받아야 합니다.
-    public static ItemStack createItem(String id, JavaPlugin sourceApp) {
+    public static ItemStack createItem(String id, String sourceAppName) {
         if (plugin == null) return null;
 
         ItemStack item = plugin.getItemRegistry().createItem(id);
@@ -28,7 +28,7 @@ public class MyTexturesAPI {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             // 출신 플러그인 각인
-            meta.getPersistentDataContainer().set(sourceKey, PersistentDataType.STRING, sourceApp.getName());
+            meta.getPersistentDataContainer().set(sourceKey, PersistentDataType.STRING, sourceAppName);
             // id 각인
             meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, id);
 

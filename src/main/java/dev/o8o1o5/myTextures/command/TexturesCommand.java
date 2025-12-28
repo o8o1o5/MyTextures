@@ -1,6 +1,7 @@
 package dev.o8o1o5.myTextures.command;
 
 import dev.o8o1o5.myTextures.MyTextures;
+import dev.o8o1o5.myTextures.api.ItemBuilder; // ItemBuilder 사용
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -11,6 +12,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,16 +20,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class TextureCommand implements CommandExecutor, TabCompleter {
+public class TexturesCommand implements CommandExecutor, TabCompleter {
 
     private final MyTextures plugin;
 
-    public TextureCommand(MyTextures plugin) {
+    public TexturesCommand(MyTextures plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(ChatColor.RED + "이 명령어는 플레이어만 사용할 수 있습니다.");
             return true;
@@ -43,8 +45,8 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
             case "name" -> handleName(player, args);
             case "give" -> handleGive(player, args);
             case "remove" -> handleRemove(player, args);
-            case "reload" -> handleReload(player, args);
-            case "apply" -> handleApply(player, args);
+            case "reload" -> handleReload(player);
+            case "apply" -> handleApply(player);
             default -> sendHelp(player);
         }
 
@@ -58,8 +60,15 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
         }
 
         String id = args[1];
-        Material mat = Material.PAPER; // 기본값
 
+        // 1. 이미 존재하는지 체크
+        if (plugin.getItemRegistry().exists(id)) {
+            player.sendMessage(ChatColor.RED + "이미 등록된 아이템 ID 입니다.");
+            return;
+        }
+
+        // 2. 재질 결정
+        Material mat = Material.PAPER;
         if (args.length >= 3) {
             Material inputMat = Material.getMaterial(args[2].toUpperCase());
             if (inputMat == null) {
@@ -69,13 +78,14 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
             mat = inputMat;
         }
 
-        if (plugin.getItemRegistry().exists(id)) {
-            player.sendMessage(ChatColor.RED + "이미 등록된 아이템 ID 입니다.");
-            return;
-        }
-
+        // 3. 리소스 파일 생성 시도 후 성공하면 빌더 등록
         if (plugin.getFileManager().generateResourceFiles(id)) {
-            plugin.getItemRegistry().registerItemData(id, mat);
+            // 개편 포인트: ItemBuilder를 생성하여 등록
+            ItemBuilder builder = new ItemBuilder(id)
+                    .material(mat)
+                    .name(id); // 초기 이름은 ID와 동일하게 설정
+
+            plugin.getItemRegistry().register(builder);
             plugin.getItemRegistry().saveItems();
             player.sendMessage(ChatColor.GREEN + id + " 아이템이 성공적으로 등록되었습니다. (Base: " + mat.name() + ")");
         } else {
@@ -90,23 +100,29 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
         }
 
         String id = args[1];
+        // 맵에서 빌더를 직접 꺼내옴
+        ItemBuilder builder = plugin.getItemRegistry().getItemList().get(id);
+
+        if (builder == null) {
+            player.sendMessage(ChatColor.RED + "등록되지 않은 아이템 ID 입니다.");
+            return;
+        }
+
         StringBuilder sb = new StringBuilder();
         for (int i = 2; i < args.length; i++) {
             sb.append(args[i]).append(" ");
         }
         String newName = sb.toString().trim().replace("&", "§");
 
-        if (plugin.getItemRegistry().updateDisplayName(id, newName)) {
-            plugin.getItemRegistry().saveItems();
-            player.sendMessage(ChatColor.GREEN + id + "의 이름이 변경되었습니다: " + newName);
-        } else {
-            player.sendMessage(ChatColor.RED + "등록되지 않은 아이템 ID 입니다.");
-        }
+        // 4. 빌더 객체의 속성 변경 (updateDisplayName 메서드 대체)
+        builder.name(newName);
+        plugin.getItemRegistry().saveItems();
+        player.sendMessage(ChatColor.GREEN + id + "의 이름이 변경되었습니다: " + newName);
     }
 
-    private void handleGive(CommandSender sender, String[] args) {
+    private void handleGive(Player player, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(ChatColor.YELLOW + "사용법: /mt give <대상> <id> [수량]");
+            player.sendMessage(ChatColor.YELLOW + "사용법: /mt give <대상> <id> [수량]");
             return;
         }
 
@@ -115,11 +131,12 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
         int amount = (args.length >= 4) ? parseAmount(args[3]) : 1;
 
         try {
-            List<Entity> targets = Bukkit.selectEntities(sender, selector);
+            List<Entity> targets = Bukkit.selectEntities(player, selector);
+            // 개편된 createItem 호출
             ItemStack item = plugin.getItemRegistry().createItem(id);
 
             if (item == null) {
-                sender.sendMessage(ChatColor.RED + "등록되지 않은 아이템 ID 입니다.");
+                player.sendMessage(ChatColor.RED + "등록되지 않은 아이템 ID 입니다.");
                 return;
             }
             item.setAmount(amount);
@@ -131,9 +148,9 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
                     count++;
                 }
             }
-            sender.sendMessage(ChatColor.GREEN + "" + count + "명의 대상에게 " + id + " " + amount + "개를 지급했습니다.");
+            player.sendMessage(ChatColor.GREEN + "" + count + "명의 대상에게 " + id + " " + amount + "개를 지급했습니다.");
         } catch (IllegalArgumentException e) {
-            sender.sendMessage(ChatColor.RED + "올바르지 않은 대상 선택자입니다.");
+            player.sendMessage(ChatColor.RED + "올바르지 않은 대상 선택자입니다.");
         }
     }
 
@@ -142,16 +159,14 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(ChatColor.YELLOW + "사용법: /mt remove <id>");
             return;
         }
-
-        String id = args[1];
-        if (plugin.getItemRegistry().removeItem(id)) {
-            player.sendMessage(ChatColor.GREEN + id + " 아이템이 성공적으로 삭제되었습니다.");
+        if (plugin.getItemRegistry().removeItem(args[1])) {
+            player.sendMessage(ChatColor.GREEN + args[1] + " 아이템이 성공적으로 삭제되었습니다.");
         } else {
             player.sendMessage(ChatColor.RED + "등록되지 않은 ID 입니다.");
         }
     }
 
-    private void handleReload(Player player, String[] args) {
+    private void handleReload(Player player) {
         if (!player.hasPermission("mytextures.admin")) {
             player.sendMessage(ChatColor.RED + "권한이 없습니다.");
             return;
@@ -160,7 +175,7 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(ChatColor.GREEN + "설정 및 리소스 파일을 재로드했습니다.");
     }
 
-    private void handleApply(Player player, String[] args) {
+    private void handleApply(Player player) {
         if (!player.hasPermission("mytextures.admin")) {
             player.sendMessage(ChatColor.RED + "권한이 없습니다.");
             return;
@@ -181,8 +196,7 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
                     for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                         onlinePlayer.setResourcePack(url, hash);
                     }
-                    player.sendMessage(ChatColor.GREEN + "배포 주소: " + url);
-                    player.sendMessage(ChatColor.GREEN + "모든 플레이어에게 리소스팩 전송 완료!");
+                    player.sendMessage(ChatColor.GREEN + "배포 완료: " + url);
                 }
             });
         });
@@ -193,9 +207,9 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(ChatColor.WHITE + "/mt register <id> [type] " + ChatColor.GRAY + "- 아이템 등록");
         player.sendMessage(ChatColor.WHITE + "/mt name <id> <name> " + ChatColor.GRAY + "- 이름 변경");
         player.sendMessage(ChatColor.WHITE + "/mt give <target> <id> [qty] " + ChatColor.GRAY + "- 아이템 지급");
-        player.sendMessage(ChatColor.WHITE + "/mt remove <id> " + ChatColor.GRAY + "- 아이템 삭제");
-        player.sendMessage(ChatColor.WHITE + "/mt reload " + ChatColor.GRAY + "- 설정 재로드");
-        player.sendMessage(ChatColor.WHITE + "/mt apply " + ChatColor.GRAY + "- 리소스팩 압축 및 배포");
+        player.sendMessage(ChatColor.WHITE + "/mt remove <id> " + ChatColor.GRAY + "- 삭제");
+        player.sendMessage(ChatColor.WHITE + "/mt reload " + ChatColor.GRAY + "- 재로드");
+        player.sendMessage(ChatColor.WHITE + "/mt apply " + ChatColor.GRAY + "- 배포");
     }
 
     private int parseAmount(String input) {
@@ -204,7 +218,7 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
             return Arrays.asList("register", "name", "give", "remove", "reload", "apply").stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
@@ -214,29 +228,24 @@ public class TextureCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             switch (args[0].toLowerCase()) {
                 case "name", "remove" -> {
-                    return plugin.getItemRegistry().getItemList().keySet().stream()
-                            .filter(id -> id.startsWith(args[1].toLowerCase()))
-                            .collect(Collectors.toList());
+                    return new ArrayList<>(plugin.getItemRegistry().getItemList().keySet());
                 }
-                case "give" -> { return null; } // 플레이어 이름 추천
+                case "give" -> { return null; }
             }
         }
 
         if (args.length == 3) {
-            switch (args[0].toLowerCase()) {
-                case "register" -> {
-                    return Arrays.stream(Material.values())
-                            .map(m -> m.name().toLowerCase())
-                            .filter(m -> m.startsWith(args[2].toLowerCase()))
-                            .limit(15).collect(Collectors.toList());
-                }
-                case "give" -> {
-                    return plugin.getItemRegistry().getItemList().keySet().stream()
-                            .filter(id -> id.startsWith(args[2].toLowerCase()))
-                            .collect(Collectors.toList());
-                }
+            if (args[0].equalsIgnoreCase("register")) {
+                return Arrays.stream(Material.values())
+                        .map(m -> m.name().toLowerCase())
+                        .filter(m -> m.startsWith(args[2].toLowerCase()))
+                        .limit(10).collect(Collectors.toList());
+            }
+            if (args[0].equalsIgnoreCase("give")) {
+                return new ArrayList<>(plugin.getItemRegistry().getItemList().keySet());
             }
         }
+
         return Collections.emptyList();
     }
 }
