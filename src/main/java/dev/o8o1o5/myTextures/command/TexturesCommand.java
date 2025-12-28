@@ -1,7 +1,7 @@
 package dev.o8o1o5.myTextures.command;
 
 import dev.o8o1o5.myTextures.MyTextures;
-import dev.o8o1o5.myTextures.api.ItemBuilder; // ItemBuilder 사용
+import dev.o8o1o5.myTextures.api.TexturesItemBuilder; // ItemBuilder 사용
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -81,7 +81,7 @@ public class TexturesCommand implements CommandExecutor, TabCompleter {
         // 3. 리소스 파일 생성 시도 후 성공하면 빌더 등록
         if (plugin.getFileManager().generateResourceFiles(id)) {
             // 개편 포인트: ItemBuilder를 생성하여 등록
-            ItemBuilder builder = new ItemBuilder(id)
+            TexturesItemBuilder builder = new TexturesItemBuilder(id)
                     .material(mat)
                     .name(id); // 초기 이름은 ID와 동일하게 설정
 
@@ -101,7 +101,7 @@ public class TexturesCommand implements CommandExecutor, TabCompleter {
 
         String id = args[1];
         // 맵에서 빌더를 직접 꺼내옴
-        ItemBuilder builder = plugin.getItemRegistry().getItemList().get(id);
+        TexturesItemBuilder builder = plugin.getItemRegistry().getItemList().get(id);
 
         if (builder == null) {
             player.sendMessage(ChatColor.RED + "등록되지 않은 아이템 ID 입니다.");

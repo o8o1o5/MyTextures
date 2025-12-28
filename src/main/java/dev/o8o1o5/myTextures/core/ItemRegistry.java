@@ -1,10 +1,9 @@
 package dev.o8o1o5.myTextures.core;
 
 import dev.o8o1o5.myTextures.MyTextures;
-import dev.o8o1o5.myTextures.api.ItemBuilder;
+import dev.o8o1o5.myTextures.api.TexturesItemBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -13,7 +12,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +20,7 @@ import java.util.stream.Collectors;
 public class ItemRegistry {
     private final MyTextures plugin;
     // 모든 데이터를 ItemBuilder 기반으로 관리
-    private final Map<String, ItemBuilder> itemList = new HashMap<>();
+    private final Map<String, TexturesItemBuilder> itemList = new HashMap<>();
 
     public ItemRegistry(MyTextures plugin) {
         this.plugin = plugin;
@@ -35,9 +33,9 @@ public class ItemRegistry {
         FileConfiguration config = plugin.getConfig();
         config.set("items", null); // 기존 데이터 초기화
 
-        for (Map.Entry<String, ItemBuilder> entry : itemList.entrySet()) {
+        for (Map.Entry<String, TexturesItemBuilder> entry : itemList.entrySet()) {
             String id = entry.getKey();
-            ItemBuilder builder = entry.getValue();
+            TexturesItemBuilder builder = entry.getValue();
 
             String path = "items." + id + ".";
             config.set(path + "material", builder.getMaterial().name());
@@ -67,7 +65,7 @@ public class ItemRegistry {
             String displayName = config.getString(path + "display_name");
             List<String> lore = config.getStringList(path + "lore");
 
-            ItemBuilder builder = new ItemBuilder(id)
+            TexturesItemBuilder builder = new TexturesItemBuilder(id)
                     .material(material)
                     .name(displayName)
                     .lore(lore);
@@ -80,7 +78,7 @@ public class ItemRegistry {
     /**
      * 외부 API 및 내부 커맨드에서 호출하는 등록 메서드
      */
-    public void register(ItemBuilder builder) {
+    public void register(TexturesItemBuilder builder) {
         itemList.put(builder.getId(), builder);
         // 등록 시 리소스 파일(json 등) 자동 생성 로직 연동
         plugin.getFileManager().generateResourceFiles(builder.getId());
@@ -90,7 +88,7 @@ public class ItemRegistry {
      * 아이템 생성 실체화
      */
     public ItemStack createItem(String id) {
-        ItemBuilder builder = itemList.get(id);
+        TexturesItemBuilder builder = itemList.get(id);
         if (builder == null) return null;
 
         ItemStack item = new ItemStack(builder.getMaterial());
@@ -125,7 +123,7 @@ public class ItemRegistry {
         return item;
     }
 
-    public Map<String, ItemBuilder> getItemList() {
+    public Map<String, TexturesItemBuilder> getItemList() {
         return itemList;
     }
 
