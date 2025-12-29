@@ -19,11 +19,13 @@ import java.util.stream.Collectors;
 
 public class ItemRegistry {
     private final MyTextures plugin;
+    private final NamespacedKey itemIdKey;
     // 모든 데이터를 ItemBuilder 기반으로 관리
     private final Map<String, TexturesItemBuilder> itemList = new HashMap<>();
 
     public ItemRegistry(MyTextures plugin) {
         this.plugin = plugin;
+        this.itemIdKey = new NamespacedKey(plugin, "item_id");
     }
 
     /**
@@ -96,6 +98,8 @@ public class ItemRegistry {
 
         if (meta != null) {
             // 1. 핵심: 문자열 ID를 모델로 연결
+            meta.getPersistentDataContainer().set(itemIdKey, PersistentDataType.STRING, id);
+
             meta.setItemModel(new NamespacedKey("mytextures", id));
 
             // 2. 이름 설정 (Adventure Component & 이탈릭 제거)
@@ -121,6 +125,13 @@ public class ItemRegistry {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    public String getIdFromItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return null;
+
+        ItemMeta meta = item.getItemMeta();
+        return meta.getPersistentDataContainer().get(itemIdKey, PersistentDataType.STRING);
     }
 
     public Map<String, TexturesItemBuilder> getItemList() {

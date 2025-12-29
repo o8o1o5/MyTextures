@@ -45,6 +45,16 @@ public class MyTexturesAPI {
     }
 
     /**
+     * 아이템의 MyTextuers Id를 가져옵니다.
+     * @param item 확인할 아이템
+     * @return 아이템 id (MyTextures 아이템이 아니면 null
+     */
+    public static String getItemId(ItemStack item) {
+        if (plugin == null || item == null) return null;
+        return plugin.getItemRegistry().getIdFromItem(item);
+    }
+
+    /**
      * 특정 ID의 아이템이 이미 등록되어 있는지 확인합니다.
      */
     public static boolean exists(String id) {
