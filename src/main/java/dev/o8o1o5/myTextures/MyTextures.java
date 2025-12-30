@@ -32,7 +32,7 @@ public final class MyTextures extends JavaPlugin {
         fileManager.createPackMeta();
 
         int port = getConfig().getInt("web-server.port", 8080);
-        webServerManager.startserver(port);
+        webServerManager.startServer(port);
 
         TexturesCommand cmd = new TexturesCommand(this);
         if (getCommand("mt") != null) {

@@ -47,7 +47,7 @@ public class ItemRegistry {
             // NBT 데이터 저장 (선택 사항: 문자열 맵으로 변환하여 저장 가능)
         }
         plugin.saveConfig();
-        plugin.getLogger().info("모든 아이템 데이터가 빌더 기준으로 저장되었습니다.");
+        plugin.getLogger().info("모든 아이템 데이터가 저장되었습니다.");
     }
 
     /**

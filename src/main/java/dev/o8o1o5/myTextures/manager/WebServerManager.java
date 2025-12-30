@@ -18,7 +18,7 @@ public class WebServerManager {
         this.plugin = plugin;
     }
 
-    public void startserver(int port) {
+    public void startServer(int port) {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
 
