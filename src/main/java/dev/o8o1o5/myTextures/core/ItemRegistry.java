@@ -2,6 +2,8 @@ package dev.o8o1o5.myTextures.core;
 
 import dev.o8o1o5.myTextures.MyTextures;
 import dev.o8o1o5.myTextures.api.TexturesItemBuilder;
+import io.papermc.paper.datacomponent.DataComponentType;
+import io.papermc.paper.datacomponent.DataComponentTypes;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
@@ -121,6 +123,11 @@ public class ItemRegistry {
             // 4. 커스텀 NBT 적용 (MyEconomy 등에서 보낸 데이터)
             builder.getPersistentData().forEach((key, value) ->
                     meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, value));
+
+            // 5. 빛나는 아이템인가?
+            if (builder.isShining()) {
+                item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
+            }
 
             item.setItemMeta(meta);
         }

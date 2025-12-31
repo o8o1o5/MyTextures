@@ -14,6 +14,7 @@ public class TexturesItemBuilder {
     private String displayName;
     private List<String> lore = new ArrayList<>();
     private final Map<NamespacedKey, String> persistentData = new HashMap<>();
+    private boolean shining;
 
     public TexturesItemBuilder(String id) {
         this.id = id;
@@ -44,9 +45,16 @@ public class TexturesItemBuilder {
         return this;
     }
 
+    public TexturesItemBuilder shining(Boolean shining) {
+        this.shining = shining;
+        return this;
+    }
+
     public String getId() { return id; }
     public Material getMaterial() { return material; }
     public String getDisplayName() { return displayName; }
     public List<String> getLore() { return lore; }
     public Map<NamespacedKey, String> getPersistentData() { return persistentData; }
+
+    public boolean isShining() { return shining; }
 }
