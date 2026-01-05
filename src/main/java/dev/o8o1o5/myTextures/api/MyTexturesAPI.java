@@ -61,4 +61,10 @@ public class MyTexturesAPI {
         if (plugin == null) return false;
         return plugin.getItemRegistry().exists(id);
     }
+
+    public static void registerModule(TexturesModule module) {
+        if (plugin == null) return;
+
+        plugin.getLogger().info("[" + module.getModuleName() + "] 모듈의 아이템들이 등록됐습니다.");
+    }
 }
