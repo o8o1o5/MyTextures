@@ -126,7 +126,12 @@ public class ItemRegistry {
 
             // 5. 빛나는 아이템인가?
             if (builder.isShining()) {
-                item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
+                meta.setEnchantmentGlintOverride(true);
+            }
+
+            // 6. 희귀도
+            if (builder.getRarity() != null) {
+                meta.setRarity(builder.getRarity());
             }
 
             item.setItemMeta(meta);

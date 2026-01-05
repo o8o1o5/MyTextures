@@ -2,6 +2,7 @@ package dev.o8o1o5.myTextures.api;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.ItemRarity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ public class TexturesItemBuilder {
     private List<String> lore = new ArrayList<>();
     private final Map<NamespacedKey, String> persistentData = new HashMap<>();
     private boolean shining;
+    private ItemRarity rarity;
 
     public TexturesItemBuilder(String id) {
         this.id = id;
@@ -50,6 +52,11 @@ public class TexturesItemBuilder {
         return this;
     }
 
+    public TexturesItemBuilder rarity(ItemRarity rarity) {
+        this.rarity = rarity;
+        return this;
+    }
+
     public String getId() { return id; }
     public Material getMaterial() { return material; }
     public String getDisplayName() { return displayName; }
@@ -57,4 +64,5 @@ public class TexturesItemBuilder {
     public Map<NamespacedKey, String> getPersistentData() { return persistentData; }
 
     public boolean isShining() { return shining; }
+    public ItemRarity getRarity() { return rarity; }
 }
